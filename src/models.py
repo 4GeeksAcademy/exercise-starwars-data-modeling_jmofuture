@@ -1,9 +1,10 @@
 import os
 import sys
-from sqlalchemy import Column, ForeignKey, Integer, String, Table
+from sqlalchemy import Column, ForeignKey, Integer, String, Table, DateTime
 from sqlalchemy.orm import relationship, declarative_base
-#from sqlalchemy import create_engine
+
 from eralchemy2 import render_er
+from datetime import datetime
 
 Base = declarative_base()
 
@@ -15,7 +16,6 @@ favorites_association = Table(
     Column('character_id', Integer, ForeignKey('characters.id'), nullable=True)
 )
 
-
 class User(Base):
     __tablename__ = 'users'
     id = Column(Integer, primary_key=True)
@@ -23,11 +23,10 @@ class User(Base):
     password = Column(String(120), nullable=False)
     first_name = Column(String(50), nullable=False)
     last_name = Column(String(50), nullable=False)
+    subscription_date = Column(DateTime, default=datetime.now())
 
-    
-
-    favorites = relationship('Favorite', secondary=favorites_association, back_populates='user')
-
+    favorite_planets = relationship('Planet', secondary=favorites_association, back_populates='favorited_by')
+    favorite_characters = relationship('Character', secondary=favorites_association, back_populates='favorited_by')
 
 class Planet(Base):
     __tablename__ = 'planets'
@@ -37,8 +36,7 @@ class Planet(Base):
     terrain = Column(String(100))
     
 
-    favorites = relationship('Favorite', secondary=favorites_association, back_populates='planet')
-
+    favorited_by = relationship('User', secondary=favorites_association, back_populates='favorite_planets')
 
 class Character(Base):
     __tablename__ = 'characters'
@@ -48,20 +46,7 @@ class Character(Base):
     mass = Column(String(50))
     
 
-    favorites = relationship('Favorite', secondary=favorites_association, back_populates='character')
-
-
-class Favorite(Base):
-    __tablename__ = 'favorites'
-    id = Column(Integer, primary_key=True)
-    user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
-    planet_id = Column(Integer, ForeignKey('planets.id'), nullable=True)
-    character_id = Column(Integer, ForeignKey('characters.id'), nullable=True)
-    
-
-    user = relationship('User', back_populates='favorites')
-    planet = relationship('Planet', back_populates='favorites')
-    character = relationship('Character', back_populates='favorites')
+    favorited_by = relationship('User', secondary=favorites_association, back_populates='favorite_characters')
 
 
 try:
